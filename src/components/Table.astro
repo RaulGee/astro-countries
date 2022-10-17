@@ -1,9 +1,25 @@
 ---
-const res = await fetch ('https://restcountries.com/v3.1/all?fields=name,capital,region,flag,subregion,altSpellings');
-const countries = await res.json();
----
+// const res = await fetch ('https://restcountries.com/v3.1/all?fields=name,capital,region,flag,subregion,altSpellings');
+// const countries = await res.json();
 
-<!-- {countries.map(country => console.log(country))} -->
+import countryData from "../data/data.json?raw";
+
+const countries = JSON.parse(countryData);
+
+const sortedCountries = countries.sort((a, b) => {
+  const nameA = a.name.common.toUpperCase(); // ignore upper and lowercase
+  const nameB = b.name.common.toUpperCase(); // ignore upper and lowercase
+  if (nameA < nameB) {
+    return -1;
+  }
+  if (nameA > nameB) {
+    return 1;
+  }
+
+  // names must be equal
+  return 0;
+});
+---
 
 <div class="px-6 sm:px-8 lg:px-12 xl:px-24 2xl:px-32 py-4">
   <div class="sm:flex sm:items-center">
@@ -13,50 +29,146 @@ const countries = await res.json();
         <a href="https://restcountries.com/#rest-countries" target="_blank" rel="noreferrer" class="text-indigo-600 underline">REST Countries API</a>.
       </p>
     </div>
-    <div class="mt-4 inline-flex sm:mt-6 sm:ml-16 sm:flex-none">
-      <div class="relative mr-3 rounded-md border border-gray-300 px-3 py-2 shadow-sm">
-        <label for="name" class="absolute -top-2 left-2 -mt-px inline-block bg-white px-1 text-xs font-medium text-gray-900">
+    <!-- Search bar -->
+    <div class="mt-4 inline-flex sm:mt-6 sm:ml-6 sm:flex-none">
+      <div class="relative py-2 ">
+        <label for="name" class="absolute -top-1 left-3 -mt-px inline-block bg-white px-1 text-xs font-medium text-gray-900">
           Search
         </label>
-        <input type="text" name="name" id="name" class="block w-full border-0 p-0 text-gray-900 placeholder-gray-500 focus:ring-0 sm:text-sm" placeholder="Name or Region">
+        <input type="text" name="name" id="searchInput" onkeyup="searchTable()" class="block w-full px-3 py-2 rounded-md border border-gray-300 focus:border-indigo-500  shadow-sm text-gray-900 placeholder-gray-500 sm:text-md" placeholder="Country Name">
       </div>
-      <button type="button" class="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto">
-        Search
-      </button>
     </div>
   </div>
-  <div class="-mx-4 mt-8 overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:-mx-6 md:mx-0 md:rounded-lg">
-    <table class="min-w-full divide-y divide-gray-300">
+  <!-- Table head -->
+  <div class="-mx-4 sm:mt-8 overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:-mx-6 md:mx-0 md:rounded-lg">
+    <table id="countryTable" class="min-w-full divide-y divide-gray-300">
       <thead class="bg-gray-50">
         <tr>
-          <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Name</th>
-          <th scope="col" class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 sm:table-cell">Region</th>
-          <th scope="col" class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell">Subregion</th>
-          <th scope="col" class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell">Capital</th>
+          <th onclick="sortTable(0)" scope="col" class="hover:cursor-pointer py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Name</th>
+          <th onclick="sortTable(1)" scope="col" class="hover:cursor-pointer hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 sm:table-cell">Region</th>
+          <th onclick="sortTable(2)" scope="col" class="hover:cursor-pointer hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell">Subregion</th>
+          <th onclick="sortTable(3)"  scope="col" class="hover:cursor-pointer hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell">Capital</th>
           <th scope="col" class="relative sm:mr-0 py-3.5 pl-3 pr-4 sm:pr-6">
             <span class="sr-only">Learn More</span>
           </th>
         </tr>
       </thead>
-          {countries.map(country => (
+      <!-- Table body  -->
+      <!-- The first hidden span is so the sortTable() function can properly sort by name  -->
           <tbody class="divide-y divide-gray-200 bg-white">
-            <tr class="hover:bg-gray-100 hover:cursor-pointer" onclick="window.location='#';">
-                <td class="whitespace-normal py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                  <span>{country.flag}</span>
-                  {country.name.common}
-                  <span>({country.altSpellings[0]})</span>
-                </td>
-                <td class="hidden whitespace-nowrap  px-3 py-4 text-sm text-gray-500 sm:table-cell">{country.region}</td>
-                <td class="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 lg:table-cell">{country.subregion}</td>
-                <td class="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 lg:table-cell">{country.capital}</td>
-                <td class="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                  <a href="#" class="-ml-16 sm:-ml-0 text-indigo-600 hover:text-indigo-900">
-                    Learn More
-                  </a>
-                </td>
-              </tr>
-          </tbody>
-        ))}
+            {countries.map(country => (
+              <>
+                <tr class="hover:bg-gray-100 hover:cursor-pointer" onclick="window.location='#';">
+                  <td class="whitespace-normal py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                    <span hidden>{country.name.common}</span> 
+                    <span>{country.flag}</span>
+                    {country.name.common}
+                    <span>({country.altSpellings[0]})</span>
+                  </td>
+                  <td class="hidden whitespace-nowrap  px-3 py-4 text-sm text-gray-500 sm:table-cell">{country.region}</td>
+                  <td class="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 lg:table-cell">{country.subregion}</td>
+                  <td class="hidden whitespace-nowrap px-3 py-4 text-sm text-gray-500 lg:table-cell">{country.capital}</td>
+                  <td class="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                    <a href="#" class="-ml-16 sm:-ml-0 text-indigo-600 hover:text-indigo-900">
+                      Learn More
+                    </a>
+                  </td>
+                </tr>
+              </>
+            ))}
+            </tbody>
       </table>
-    </div>
+      </div>
 </div>
+
+<script is:inline>
+  // Pagination
+  // Get table element
+  const table = document.getElementById("countryTable");
+
+
+
+  // Search table through search bar
+  function searchTable() {
+    // Declare variables
+    var input, filter, tr, td, i, j, txtValue;
+
+    input = document.getElementById("searchInput");
+    filter = input.value.toUpperCase();
+
+    tr = table.getElementsByTagName("tr");
+
+    // Loop through all table rows, and hide those who don't match search query
+    // td [0, 1] are Name and Region
+    for (i = 0; i < tr.length; i++) {
+      td = tr[i].getElementsByTagName("td")[0];
+      if (td) {
+        txtValue = td.textContent || td.innerText;
+        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+          tr[i].style.display = "";
+        } else {
+          tr[i].style.display = "none";
+        }
+      }
+    }
+  }
+
+  // Sort table by clicking on headers
+  function sortTable(n) {
+    var rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+    switching = true;
+    // Set the sorting direction to ascending:
+    dir = "asc";
+    /* Make a loop that will continue until
+    no switching has been done: */
+    const start = performance.now()
+    while (switching) {
+      // Start by saying: no switching is done:
+      switching = false;
+      rows = table.rows;
+      /* Loop through all table rows (except the
+      first, which contains table headers): */
+      for (i = 1; i < (rows.length - 1); i++) {
+        // Start by saying there should be no switching:
+        shouldSwitch = false;
+        /* Get the two elements you want to compare,
+        one from current row and one from the next: */
+        x = rows[i].getElementsByTagName("TD")[n];
+        y = rows[i + 1].getElementsByTagName("TD")[n];
+        /* Check if the two rows should switch place,
+        based on the direction, asc or desc: */
+        if (dir == "asc") {
+          if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+            // If so, mark as a switch and break the loop:
+            shouldSwitch = true;
+            break;
+          }
+        } else if (dir == "desc") {
+          if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+            // If so, mark as a switch and break the loop:
+            shouldSwitch = true;
+            break;
+          }
+        }
+      }
+      if (shouldSwitch) {
+        /* If a switch has been marked, make the switch
+        and mark that a switch has been done: */
+        rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+        switching = true;
+        // Each time a switch is done, increase this count by 1:
+        switchcount ++;
+      } else {
+        /* If no switching has been done AND the direction is "asc",
+        set the direction to "desc" and run the while loop again. */
+        if (switchcount == 0 && dir == "asc") {
+          dir = "desc";
+          switching = true;
+        }
+      }
+    }
+    const end = performance.now()
+    console.log( "Sorted table rows in %d ms.",  end - start );
+  }
+</script>
+
