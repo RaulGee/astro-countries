@@ -1,28 +1,36 @@
-import { createEffect, createResource, createSignal, onMount } from 'solid-js';
+import { createEffect, createMemo, createResource, createSignal, onMount } from 'solid-js';
 
 
 export default function List(props) {
-  // const [countries, setCountries] = createSignal([]);
-  // const sortedCountries = [...countries];
+  const [countries, setCountries] = createSignal([]);
 
-  // onMount(async () => {
-  //   const res = await fetch(`https://restcountries.com/v3.1/all?fields=name,capital,region,flag,subregion,altSpellings`);
-  //   setCountries(await res.json());
-  // });
-
-  // const sortedCountries = setCountries.sort((a, b) => {
-  //   const nameA = a.name.common.toUpperCase(); // ignore upper and lowercase
-  //   const nameB = b.name.common.toUpperCase(); // ignore upper and lowercase
-  //   if (nameA < nameB) {
-  //     return -1;
-  //   }
-  //   if (nameA > nameB) {
-  //     return 1;
-  //   }
+  onMount(async () => {
+    // const local = localStorage.getItem(countries);
+    // if (local) {
+    //   setCountries(local);
+    // } else {
+      const res = await fetch(`https://restcountries.com/v3.1/all?fields=name,capital,region,flag,subregion,altSpellings`, {cache: 'force-cache'});
+      console.log(res)
+      setCountries(await res.json());
+  });
   
-  //   // names must be equal
-  //   return 0;
-  // });
+  const sort = createMemo(() => countries().sort((a, b) => {
+      const nameA = a.name.common.toUpperCase(); // ignore upper and lowercase
+      const nameB = b.name.common.toUpperCase(); // ignore upper and lowercase
+      if (nameA < nameB) {
+        return -1;
+      }
+      if (nameA > nameB) {
+        return 1;
+      }
+    
+      // names must be equal
+      return 0;
+      
+    }))
+
+  createEffect(() => console.log(countries()))
+
 
 	return (
 		<>
