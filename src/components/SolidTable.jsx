@@ -1,33 +1,52 @@
-import { createEffect, createMemo, createResource, createSignal, onMount } from 'solid-js';
+import { createEffect, createMemo, createResource, createSignal, onMount, createRenderEffect } from 'solid-js';
+import {createLocalStore} from './utils';
+
 
 
 export default function List(props) {
   const [countries, setCountries] = createSignal([]);
+  const localStorageValue = localStorage.getItem('countries');
 
-  onMount(async () => {
-    // const local = localStorage.getItem(countries);
-    // if (local) {
-    //   setCountries(local);
-    // } else {
-      const res = await fetch(`https://restcountries.com/v3.1/all?fields=name,capital,region,flag,subregion,altSpellings`, {cache: 'force-cache'});
-      console.log(res)
-      setCountries(await res.json());
-  });
+  createRenderEffect(async () => {
+    if (localStorageValue !== null) {
+      return setCountries(JSON.parse(localStorageValue));
+    } else {
+      const res = await ((await fetch(`https://restcountries.com/v3.1/all?fields=name,capital,region,flag,subregion,altSpellings`)));
+      return setCountries(await res.json());
+    }
+
+});
+
+  function logData() {
+    if (localStorageValue == null) {
+    createMemo(() => {
+      localStorage.setItem('countries', JSON.stringify(countries()))
+    })
+  }
+}
+
+logData()
   
-  const sort = createMemo(() => countries().sort((a, b) => {
-      const nameA = a.name.common.toUpperCase(); // ignore upper and lowercase
-      const nameB = b.name.common.toUpperCase(); // ignore upper and lowercase
-      if (nameA < nameB) {
-        return -1;
-      }
-      if (nameA > nameB) {
-        return 1;
-      }
-    
-      // names must be equal
-      return 0;
+  
+
+  function sort() {
+    createMemo(() => countries().sort((a, b) => {
+        const nameA = a.name.common.toUpperCase(); // ignore upper and lowercase
+        const nameB = b.name.common.toUpperCase(); // ignore upper and lowercase
+        if (nameA < nameB) {
+          return -1;
+        }
+        if (nameA > nameB) {
+          return 1;
+        }
       
-    }))
+        // names must be equal
+        return 0;
+        
+      }))
+  } 
+
+  sort()
 
   createEffect(() => console.log(countries()))
 
@@ -52,6 +71,7 @@ export default function List(props) {
             {/* <!-- Table body  --> */}
             {/* <!-- The first hidden span is so the sortTable() function can properly sort by name  --> */}
                 <tbody class="divide-y divide-gray-200 bg-white">
+                  <Show when={!countries().loading && !countries().error} fallback={<div class="flex justify-center items-center text-2xl">Loading...</div>}>
                   <For each={countries()}>{(country => (
                     <>
                       <tr class="hover:bg-gray-100 hover:cursor-pointer" onclick="window.location='#';">
@@ -73,7 +93,8 @@ export default function List(props) {
                     </>
                   ))}
                   </For>
-                  </tbody>
+                  </Show>
+                </tbody>
             </table>
             </div>
 		</>
