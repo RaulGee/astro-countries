@@ -1,9 +1,10 @@
 import { defineConfig } from 'astro/config';
 import tailwind from "@astrojs/tailwind";
 
-import solid from "@astrojs/solid-js";
+import preact from "@astrojs/preact";
 
 // https://astro.build/config
 export default defineConfig({
-  integrations: [tailwind(), solid()]
+  integrations: [tailwind(), 
+    preact({compat: true})]
 });
